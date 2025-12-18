@@ -1,0 +1,77 @@
+# NetShare
+
+NetShare is a lightweight LAN-only file and directory sharing tool for Windows (Windows 7 SP1 through Windows 11).
+
+It provides:
+
+- **Automatic peer discovery** on the local network (UDP broadcast)
+- **Browsing shared folders** on peers
+- **File download and upload** with progress and integrity verification
+- **Optional access key** authentication (HMAC-SHA256 challenge/response)
+
+## Projects
+
+- `NetShare.App` — WinForms GUI
+- `NetShare.Core` — protocol + discovery + transfer engine
+- `NetShare.Tests` — basic unit tests for framing/path safety
+
+## Build & Run (Visual Studio)
+
+1. Open `NetShare.sln` in Visual Studio 2019/2022.
+2. Ensure the App project is the startup project: `NetShare.App`.
+3. Build and run (F5).
+
+## Build (MSBuild)
+
+From a Developer Command Prompt:
+
+```bat
+msbuild NetShare.sln /m /p:Configuration=Release
+```
+
+## Firewall / Network Notes
+
+Default ports:
+
+- UDP discovery: `40123`
+- TCP control+transfer: `40124`
+
+You must allow inbound traffic for these ports on each machine.
+
+Windows 7/8/10/11 (run elevated):
+
+```bat
+netsh advfirewall firewall add rule name="NetShare UDP Discovery" dir=in action=allow protocol=UDP localport=40123
+netsh advfirewall firewall add rule name="NetShare TCP Transfer" dir=in action=allow protocol=TCP localport=40124
+```
+
+If broadcast is blocked on your network, use **Peer → Add Peer by IP…**.
+
+## Quick verification (two machines)
+
+1. On **Machine A**:
+	- Run NetShare.
+	- **Share → Add Folder…** and select a folder containing at least one file.
+2. On **Machine B**:
+	- Run NetShare.
+	- Wait up to ~5 seconds for A to appear under **Peers**.
+	- Double-click A (or **Peer → Connect**) to load its shares.
+	- Select a remote share and browse into a folder.
+	- Select a file and click **Download**.
+
+You should see a transfer entry with progressing percentage/speed, and the file should land under the configured **Download directory**.
+
+## Troubleshooting
+
+- **No peers appear**: verify both machines are on the same LAN/VLAN, UDP broadcast is permitted, and firewall rules are present.
+- **Connect fails**: confirm TCP port is allowed and both devices use the same access key (or both are in open mode).
+- **Browse works but transfers fail**: some AV/firewall tools block large TCP streams; temporarily disable for testing.
+
+## Protocol
+
+The full protocol spec is in `PROTOCOL.md`.
+
+## Known limitations
+
+- The UI is intentionally minimal; **Pause** cancels the active socket loop and **Resume** restarts the transfer using byte-offset resume.
+- IPv6 is not currently used for discovery (IPv4 UDP broadcast is the primary mechanism).

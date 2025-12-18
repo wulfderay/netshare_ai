@@ -1,0 +1,40 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31321.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetShare.Core", "NetShare.Core\NetShare.Core.csproj", "{A7A8D9C1-4B25-4F61-B7C4-0D4AC46A11E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetShare.App", "NetShare.App\NetShare.App.csproj", "{EF5C7012-2B12-4D99-9B1D-9DDF1EE8DA4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetShare.Tests", "NetShare.Tests\NetShare.Tests.csproj", "{3A5DFE72-4CBE-4F07-9A29-0A9AD4D6D266}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetShare.Monitor", "NetShare.Monitor\NetShare.Monitor.csproj", "{0A8C27B9-D5C3-452E-A46A-E6BD692D6530}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A7A8D9C1-4B25-4F61-B7C4-0D4AC46A11E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7A8D9C1-4B25-4F61-B7C4-0D4AC46A11E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7A8D9C1-4B25-4F61-B7C4-0D4AC46A11E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7A8D9C1-4B25-4F61-B7C4-0D4AC46A11E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF5C7012-2B12-4D99-9B1D-9DDF1EE8DA4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF5C7012-2B12-4D99-9B1D-9DDF1EE8DA4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF5C7012-2B12-4D99-9B1D-9DDF1EE8DA4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF5C7012-2B12-4D99-9B1D-9DDF1EE8DA4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A5DFE72-4CBE-4F07-9A29-0A9AD4D6D266}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A5DFE72-4CBE-4F07-9A29-0A9AD4D6D266}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A8C27B9-D5C3-452E-A46A-E6BD692D6530}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A8C27B9-D5C3-452E-A46A-E6BD692D6530}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A8C27B9-D5C3-452E-A46A-E6BD692D6530}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A8C27B9-D5C3-452E-A46A-E6BD692D6530}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B2A04F4D-3C3E-4A86-993B-A5E24D5A3E9F}
+	EndGlobalSection
+EndGlobal
