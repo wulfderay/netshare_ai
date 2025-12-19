@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Linux GUI app (GTK 3) -->
+    <RootNamespace>NetShare.Linux.GtkApp</RootNamespace>
+    <AssemblyName>NetShare.Linux.GtkApp</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetShare.Linux.Core\NetShare.Linux.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- GTK 3 bindings for .NET (GtkSharp). Keep dependencies minimal. -->
+    <PackageReference Include="GtkSharp" Version="3.24.24.95" />
+  </ItemGroup>
+
+</Project>
