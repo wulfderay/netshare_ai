@@ -171,7 +171,47 @@ Server MUST enforce path traversal protection and MUST reject any path resolving
 
 ### 8.3 Stat
 
-Request: `STAT` returns file metadata including size and SHA-256.
+**Purpose**: Retrieve metadata for a specific file within a share.
+
+**Request**:
+```json
+{
+  "type": "STAT",
+  "reqId": "<unique-request-id>",
+  "shareId": "<share-id>",
+  "path": "<relative-file-path>"
+}
+```
+- `type`: MUST be `"STAT"`.
+- `reqId`: A unique identifier for the request.
+- `shareId`: The ID of the share containing the file.
+- `path`: The relative path of the file within the share.
+
+**Response**:
+```json
+{
+  "type": "STAT_RESP",
+  "reqId": "<request-id>",
+  "ok": true,
+  "stat": {
+    "size": <file-size-in-bytes>,
+    "mtimeUtc": "<last-modified-time-utc>",
+    "sha256": "<sha256-hash-of-file>"
+  }
+}
+```
+- `type`: MUST be `"STAT_RESP"`.
+- `reqId`: The `reqId` from the corresponding `STAT` request.
+- `ok`: `true` if the operation succeeded, `false` otherwise.
+- `stat`: Metadata about the file:
+  - `size`: The size of the file in bytes.
+  - `mtimeUtc`: The last modified time of the file in UTC (ISO-8601 format).
+  - `sha256`: The SHA-256 hash of the file.
+
+**Errors**:
+- `NotFound`: The share or file does not exist.
+- `PathTraversal`: The requested path resolves outside the share root.
+- `IoError`: An I/O error occurred while accessing the file.
 
 ### 8.4 Download
 
@@ -212,6 +252,52 @@ Example `UPLOAD_DONE`:
 If the upload integrity check fails, the server MUST respond with `ok=false` and `error.code=INTEGRITY_FAILED`.
 
 Server MUST reject uploads into read-only shares (`READ_ONLY`).
+
+### HASH_REQ
+
+**Purpose**: Request the SHA-256 hash of a specific range of bytes in a file.
+
+**Request**:
+```json
+{
+  "type": "HASH_REQ",
+  "reqId": "<unique-request-id>",
+  "shareId": "<share-id>",
+  "path": "<relative-file-path>",
+  "offset": <start-byte-offset>,
+  "length": <number-of-bytes-to-hash>
+}
+```
+
+- `type`: MUST be `"HASH_REQ"`.
+- `reqId`: A unique identifier for the request.
+- `shareId`: The ID of the share containing the file.
+- `path`: The relative path of the file within the share.
+- `offset`: The starting byte offset of the range to hash.
+- `length`: The number of bytes to hash.
+
+**Response**:
+```json
+{
+  "type": "HASH_RESP",
+  "reqId": "<request-id>",
+  "ok": true,
+  "hash": "<sha256-hash-of-range>"
+}
+```
+
+- `type`: MUST be `"HASH_RESP"`.
+- `reqId`: The `reqId` from the corresponding `HASH_REQ`.
+- `ok`: `true` if the operation succeeded, `false` otherwise.
+- `hash`: The SHA-256 hash of the specified range (if `ok = true`).
+- `error`: Error details (if `ok = false`).
+
+**Errors**:
+- `NotFound`: The file does not exist.
+- `InvalidRange`: The specified range is out of bounds.
+- `IoError`: An I/O error occurred while reading the file.
+
+
 
 ## 9. Keepalive
 

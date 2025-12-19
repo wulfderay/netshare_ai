@@ -299,6 +299,68 @@ namespace NetShare.Core.Transfers
             }
         }
 
+        public void HandleHashRequest(FrameWriter writer, string reqId, Dictionary<string, object> msg)
+        {
+            var shareId = GetString(msg, "shareId");
+            var path = GetString(msg, "path") ?? "";
+            var offset = GetLong(msg, "offset");
+            var length = GetLong(msg, "length");
+
+            Logger.Debug("TransferServer", "HASH_REQ. ShareId=" + shareId + " Path=" + path + " Offset=" + offset + " Length=" + length);
+
+            if (!_shares.TryGetShare(shareId, out var share))
+            {
+                SendError(writer, reqId, "HASH_RESP", ErrorCodes.NotFound, "Share not found.");
+                return;
+            }
+
+            try
+            {
+                var full = SafePath.CombineAndValidate(share.LocalPath, path);
+                if (!File.Exists(full))
+                {
+                    SendError(writer, reqId, "HASH_RESP", ErrorCodes.NotFound, "File not found.");
+                    return;
+                }
+
+                using (var fs = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var sha = SHA256.Create())
+                {
+                    if (offset < 0 || offset >= fs.Length || length <= 0 || offset + length > fs.Length)
+                    {
+                        SendError(writer, reqId, "HASH_RESP", ErrorCodes.InvalidRange, "Invalid range.");
+                        return;
+                    }
+
+                    fs.Position = offset;
+                    var buffer = new byte[64 * 1024];
+                    long remaining = length;
+                    while (remaining > 0)
+                    {
+                        int read = fs.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining));
+                        if (read <= 0) break;
+                        sha.TransformBlock(buffer, 0, read, null, 0);
+                        remaining -= read;
+                    }
+                    sha.TransformFinalBlock(new byte[0], 0, 0);
+
+                    var hash = ToHex(sha.Hash);
+                    var resp = new Dictionary<string, object>
+                    {
+                        { "type", "HASH_RESP" },
+                        { "reqId", reqId },
+                        { "ok", true },
+                        { "hash", hash }
+                    };
+                    writer.WriteFrame(new Frame(FrameKind.Json, _json.Encode(resp)));
+                }
+            }
+            catch (Exception ex)
+            {
+                SendError(writer, reqId, "HASH_RESP", ErrorCodes.IoError, ex.Message);
+            }
+        }
+
         private void SendError(FrameWriter writer, string reqId, string respType, string code, string message)
         {
             try

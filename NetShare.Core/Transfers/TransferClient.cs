@@ -321,5 +321,88 @@ namespace NetShare.Core.Transfers
                 remaining -= read;
             }
         }
+
+        private long VerifyLocalFileWithHash(IPAddress address, int port, string authMode, string shareId, string remotePath, string localPath)
+        {
+            Logger.Debug("TransferClient", "Verifying local file before download. ShareId=" + shareId + " Path=" + remotePath);
+
+            var statReq = new Dictionary<string, object>
+            {
+                { "type", "STAT" },
+                { "reqId", Guid.NewGuid().ToString() },
+                { "shareId", shareId },
+                { "path", remotePath }
+            };
+
+            using (var tcp = new TcpClient())
+            {
+                tcp.Connect(address, port);
+                using (var stream = tcp.GetStream())
+                {
+                    var reader = new FrameReader(stream);
+                    var writer = new FrameWriter(stream);
+
+                    Handshake(writer, reader, authMode);
+                    writer.WriteFrame(new Frame(FrameKind.Json, _json.Encode(statReq)));
+
+                    var statResp = ReadJson(reader);
+                    EnsureOk(statResp);
+
+                    var remoteSize = Convert.ToInt64(((Dictionary<string, object>)statResp["stat"])["size"]);
+                    var remoteHash = ((Dictionary<string, object>)statResp["stat"])["sha256"].ToString();
+
+                    if (!File.Exists(localPath)) return 0; // No local file, start fresh.
+
+                    using (var file = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        if (file.Length == remoteSize)
+                        {
+                            using (var sha = SHA256.Create())
+                            {
+                                var localHash = ToHex(sha.ComputeHash(file));
+                                if (string.Equals(localHash, remoteHash, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Logger.Info("TransferClient", "Local file matches remote. Skipping download.");
+                                    return -1; // Signal to skip download.
+                                }
+                            }
+                        }
+
+                        if (file.Length < remoteSize)
+                        {
+                            var hashReq = new Dictionary<string, object>
+                            {
+                                { "type", "HASH_REQ" },
+                                { "reqId", Guid.NewGuid().ToString() },
+                                { "shareId", shareId },
+                                { "path", remotePath },
+                                { "offset", 0 },
+                                { "length", file.Length }
+                            };
+                            writer.WriteFrame(new Frame(FrameKind.Json, _json.Encode(hashReq)));
+
+                            var hashResp = ReadJson(reader);
+                            EnsureOk(hashResp);
+
+                            var remotePrefixHash = hashResp["hash"].ToString();
+                            using (var sha = SHA256.Create())
+                            {
+                                HashPrefix(sha, file, file.Length);
+                                var localPrefixHash = ToHex(sha.Hash);
+                                if (string.Equals(localPrefixHash, remotePrefixHash, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Logger.Info("TransferClient", "Local file prefix matches remote. Resuming download.");
+                                    return file.Length; // Resume from this offset.
+                                }
+                            }
+                        }
+                    }
+
+                    Logger.Info("TransferClient", "Local file does not match remote. Restarting download.");
+                    File.Delete(localPath);
+                    return 0; // Restart from scratch.
+                }
+            }
+        }
     }
 }

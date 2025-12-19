@@ -12,5 +12,6 @@ namespace NetShare.Core.Protocol
         public const string IoError = "IO_ERROR";
         public const string IntegrityFailed = "INTEGRITY_FAILED";
         public const string InternalError = "INTERNAL_ERROR";
+        public const string InvalidRange = "INVALID_RANGE";
     }
 }
